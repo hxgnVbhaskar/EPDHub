@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Octave EPD Compliance Hub</title>
+<style>
+:root{
+  --bg:#1A1A1F;--bg2:#222228;--bg3:#2a2a32;--bg4:#32323c;
+  --b0:rgba(255,255,255,0.06);--b1:rgba(255,255,255,0.1);--b2:rgba(255,255,255,0.16);
+  --tx:#FFFFFF;--t2:#a0a0b0;--t3:#6a6a7a;
+  --cy:#00FFFF;--ye:#FFF500;--or:#FF6B00;--gr:#4FFF00;--vi:#9933FF;
+  --cy2:rgba(0,255,255,0.08);--ye2:rgba(255,245,0,0.07);
+  --or2:rgba(255,107,0,0.08);--gr2:rgba(79,255,0,0.07);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;scroll-snap-type:y mandatory;}
+body{font-family:'Aptos',system-ui,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);overflow-x:hidden;line-height:1.6;}
+section{min-height:100vh;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;padding:5.5rem 3rem 3rem;position:relative;overflow:hidden;}
+.inner{max-width:1080px;width:100%;}
+
+/* Reveal animation */
+.r{opacity:0;transform:translateY(22px);transition:opacity 0.65s ease,transform 0.65s ease;}
+.r.v{opacity:1;transform:translateY(0);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(0,255,255,0.35);}50%{box-shadow:0 0 0 10px rgba(0,255,255,0);}}
+
+/* Nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(26,26,31,0.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--b0);display:flex;justify-content:space-between;align-items:center;padding:0 1.8rem;height:52px;}
+.nav-logo{display:flex;align-items:center;gap:14px;}
+.nav-sep{width:1px;height:18px;background:var(--b2);}
+.nav-links{display:flex;gap:2px;}
+.nav-links a{color:var(--t3);text-decoration:none;font-size:0.68rem;font-weight:500;padding:0.28rem 0.6rem;border-radius:5px;transition:all 0.18s;letter-spacing:0.2px;}
+.nav-links a:hover,.nav-links a.act{color:var(--tx);background:var(--b1);}
+
+/* Brand bar */
+.bb{display:flex;height:3px;border-radius:2px;overflow:hidden;margin-bottom:1.8rem;}
+.bb.full{max-width:380px;}
+.bb span:nth-child(1){flex:3;background:var(--cy);}
+.bb span:nth-child(2){flex:1;background:transparent;}
+.bb span:nth-child(3){flex:2;background:var(--or);}
+.bb span:nth-child(4){flex:1;background:transparent;}
+.bb span:nth-child(5){flex:1;background:var(--vi);}
+
+/* Typography */
+.eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:0.65rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cy);border:1px solid rgba(0,255,255,0.22);background:var(--cy2);padding:0.3rem 0.9rem;border-radius:20px;margin-bottom:1.4rem;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--cy);animation:blink 1.8s ease infinite;}
+.slabel{font-size:0.65rem;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--or);margin-bottom:0.55rem;}
+.stitle{font-size:clamp(1.75rem,3vw,2.5rem);font-weight:800;line-height:1.16;margin-bottom:0.75rem;}
+.ssub{font-size:0.95rem;color:var(--t2);line-height:1.72;margin-bottom:1.5rem;max-width:700px;}
+.cy{color:var(--cy);} .ye{color:var(--ye);} .or{color:var(--or);} .gr{color:var(--gr);} .vi{color:var(--vi);}
+
+/* Tags */
+.tag{font-size:0.62rem;font-weight:600;letter-spacing:0.7px;text-transform:uppercase;padding:0.24rem 0.65rem;border-radius:4px;border:1px solid;display:inline-block;}
+.tcy{color:var(--cy);border-color:rgba(0,255,255,0.28);background:var(--cy2);}
+.tye{color:var(--ye);border-color:rgba(255,245,0,0.28);background:var(--ye2);}
+.tor{color:var(--or);border-color:rgba(255,107,0,0.28);background:var(--or2);}
+.tgr{color:var(--gr);border-color:rgba(79,255,0,0.28);background:var(--gr2);}
+.tvi{color:var(--vi);border-color:rgba(153,51,255,0.28);background:rgba(153,51,255,0.07);}
+
+/* Cards */
+.grid{display:grid;gap:14px;}
+.g2{grid-template-columns:repeat(2,1fr);}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g4{grid-template-columns:repeat(4,1fr);}
+.card{background:var(--bg2);border:1px solid var(--b0);border-radius:12px;padding:1.3rem 1.1rem;transition:transform 0.2s,box-shadow 0.2s;position:relative;overflow:hidden;}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,0.4);}
+.ct{height:2px;position:absolute;top:0;left:0;right:0;border-radius:12px 12px 0 0;}
+.ct-cy{background:var(--cy);} .ct-ye{background:var(--ye);} .ct-or{background:var(--or);}
+.ct-gr{background:var(--gr);} .ct-vi{background:var(--vi);}
+.ci{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:0.65rem;}
+.ci-cy{background:rgba(0,255,255,0.1);} .ci-ye{background:rgba(255,245,0,0.1);}
+.ci-or{background:rgba(255,107,0,0.1);} .ci-gr{background:rgba(79,255,0,0.1);} .ci-vi{background:rgba(153,51,255,0.1);}
+.card h3{font-size:0.9rem;font-weight:700;margin-bottom:0.35rem;}
+.card p{font-size:0.78rem;color:var(--t2);line-height:1.58;}
+.card .jtbd{font-size:0.68rem;color:var(--cy);font-weight:600;margin-top:0.7rem;padding-top:0.6rem;border-top:1px solid var(--b0);}
+
+/* Stat bar */
+.stats{display:grid;gap:12px;margin-top:1.4rem;}
+.st3{grid-template-columns:repeat(3,1fr);}
+.st4{grid-template-columns:repeat(4,1fr);}
+.stat{background:var(--bg2);border-radius:8px;padding:1.1rem;text-align:center;}
+.sv{font-size:1.7rem;font-weight:800;margin-bottom:0.18rem;}
+.sl{font-size:0.68rem;color:var(--t3);line-height:1.4;}
+
+/* Compare */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.cmp{border-radius:12px;padding:1.3rem;}
+.cmp.old{background:rgba(255,107,0,0.05);border:1px solid rgba(255,107,0,0.14);}
+.cmp.new{background:rgba(0,255,255,0.05);border:1px solid rgba(0,255,255,0.14);}
+.cmp h3{font-size:0.88rem;font-weight:700;margin-bottom:0.8rem;}
+.cmp.old h3{color:var(--or);} .cmp.new h3{color:var(--cy);}
+.cmp ul{list-style:none;}
+.cmp li{font-size:0.79rem;color:var(--t2);line-height:1.62;padding:0.3rem 0 0.3rem 1.1rem;position:relative;}
+.cmp.old li::before{content:'';position:absolute;left:0;top:0.78rem;width:5px;height:5px;border-radius:50%;background:var(--or);opacity:0.5;}
+.cmp.new li::before{content:'';position:absolute;left:0;top:0.78rem;width:5px;height:5px;border-radius:50%;background:var(--cy);}
+
+/* Callout */
+.callout{border-radius:0 8px 8px 0;padding:0.85rem 1.1rem;margin:1rem 0;}
+.callout.cy{background:var(--cy2);border-left:3px solid var(--cy);}
+.callout.ye{background:var(--ye2);border-left:3px solid var(--ye);}
+.callout.or{background:var(--or2);border-left:3px solid var(--or);}
+.callout p{font-size:0.82rem;color:var(--t2);line-height:1.65;font-style:italic;}
+.callout strong{color:var(--cy);font-style:normal;}
+.callout.ye p strong{color:var(--ye);}
+.callout.or p strong{color:var(--or);}
+
+/* Bullets */
+.blist{display:flex;flex-direction:column;gap:0.65rem;}
+.bi{display:flex;align-items:flex-start;gap:0.65rem;font-size:0.85rem;color:var(--t2);line-height:1.58;}
+.bd{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:0.38rem;}
+
+/* Workflow strip */
+.wflow{display:flex;align-items:flex-start;gap:0;flex-wrap:wrap;}
+.ws{background:var(--bg2);border:1px solid var(--b0);border-radius:10px;padding:1rem 0.85rem;text-align:center;flex:1;min-width:110px;max-width:148px;transition:transform 0.2s;}
+.ws:hover{transform:translateY(-3px);}
+.wn{font-size:0.55rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:0.4rem;opacity:0.7;}
+.wi{font-size:1.3rem;margin-bottom:0.4rem;}
+.wt{font-size:0.8rem;font-weight:700;color:var(--tx);margin-bottom:0.2rem;}
+.wd{font-size:0.66rem;color:var(--t2);line-height:1.42;}
+.ws.w-cy{border-top:3px solid var(--cy);} .ws.w-cy .wn{color:var(--cy);}
+.ws.w-ye{border-top:3px solid var(--ye);} .ws.w-ye .wn{color:var(--ye);}
+.ws.w-or{border-top:3px solid var(--or);} .ws.w-or .wn{color:var(--or);}
+.ws.w-gr{border-top:3px solid var(--gr);} .ws.w-gr .wn{color:var(--gr);}
+.ws.w-vi{border-top:3px solid var(--vi);} .ws.w-vi .wn{color:var(--vi);}
+.warr{color:var(--t3);font-size:1.2rem;padding:0 0.3rem;align-self:center;margin-top:-0.8rem;}
+
+/* Module pill */
+.mpill{display:inline-flex;align-items:center;gap:5px;font-size:0.62rem;font-weight:700;letter-spacing:0.5px;border-radius:5px;padding:0.2rem 0.6rem;margin:0.15rem 0.1rem;}
+.mpill.cy{background:rgba(0,255,255,0.1);color:var(--cy);border:1px solid rgba(0,255,255,0.2);}
+.mpill.ye{background:rgba(255,245,0,0.1);color:var(--ye);border:1px solid rgba(255,245,0,0.2);}
+.mpill.or{background:rgba(255,107,0,0.1);color:var(--or);border:1px solid rgba(255,107,0,0.2);}
+.mpill.gr{background:rgba(79,255,0,0.1);color:var(--gr);border:1px solid rgba(79,255,0,0.2);}
+.mpill.vi{background:rgba(153,51,255,0.1);color:var(--vi);border:1px solid rgba(153,51,255,0.2);}
+
+/* Pain tag */
+.ptag{display:inline-block;font-size:0.6rem;background:rgba(255,107,0,0.1);color:var(--or);border:1px solid rgba(255,107,0,0.22);border-radius:4px;padding:0.16rem 0.5rem;margin:0.12rem 0.08rem;}
+
+/* Persona card */
+.pcard{background:linear-gradient(135deg,rgba(0,255,255,0.06),rgba(0,255,255,0.02));border:1px solid rgba(0,255,255,0.18);border-radius:13px;padding:1.5rem 1.3rem;}
+.pav{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,rgba(0,255,255,0.2),rgba(153,51,255,0.15));border:2px solid rgba(0,255,255,0.28);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:0.8rem;}
+
+/* Module row for workflow section */
+.mrow{display:flex;flex-direction:column;gap:8px;}
+.mblock{background:var(--bg2);border:1px solid var(--b0);border-radius:9px;padding:0.85rem 1rem;display:grid;grid-template-columns:180px 1fr auto;gap:12px;align-items:start;}
+.mb-name{font-size:0.82rem;font-weight:700;color:var(--tx);}
+.mb-desc{font-size:0.76rem;color:var(--t2);line-height:1.55;}
+.mb-tag{font-size:0.6rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;white-space:nowrap;}
+
+/* Arch node */
+.arch{background:var(--bg2);border:1px solid var(--b0);border-radius:10px;padding:0.9rem 1rem;}
+.arch.hub{background:linear-gradient(135deg,rgba(0,255,255,0.09),rgba(0,255,255,0.03));border-color:rgba(0,255,255,0.3);animation:glow 2.5s ease infinite;}
+.arch h4{font-size:0.85rem;font-weight:700;margin-bottom:0.25rem;}
+.arch p{font-size:0.72rem;color:var(--t2);line-height:1.5;}
+
+@media(max-width:900px){
+  section{padding:4rem 1.5rem 2rem;}
+  .g3,.g4{grid-template-columns:1fr 1fr;}
+  .compare,.g2{grid-template-columns:1fr;}
+  .st3,.st4{grid-template-columns:1fr 1fr;}
+  .nav-links{display:none;}
+  .mblock{grid-template-columns:1fr;}
+  .wflow{flex-direction:column;align-items:center;}
+}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">
+    <img src="data:image/jpeg;base64,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" alt="Octave" style="height:26px;width:auto;">
+    <div class="nav-sep"></div>
+    <span style="font-size:0.68rem;color:var(--t3);letter-spacing:0.5px;">EPD COMPLIANCE HUB</span>
+  </div>
+  <div class="nav-links">
+    <a href="#s0">Home</a>
+    <a href="#exec">Pitch</a>
+    <a href="#s1">What is EPD</a>
+    <a href="#s2">Procedure</a>
+    <a href="#s3">Persona</a>
+    <a href="#s4">Challenges</a>
+    <a href="#s5">Solution</a>
+    <a href="#s6">Modules</a>
+    <a href="#s7">Workflows</a>
+    <a href="#s8">Summary</a>
+  </div>
+  <span style="font-size:0.62rem;color:var(--t3);letter-spacing:1.5px;">APRIL 2026</span>
+</nav>
+
+<!-- ═══════ SLIDE 0 — TITLE ═══════ -->
+<section id="s0" style="background:linear-gradient(145deg,#0d0d12 0%,#1A1A1F 55%,#1e1e26 100%);">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:640px;height:640px;border-radius:50%;background:radial-gradient(circle,rgba(0,255,255,0.04) 0%,transparent 65%);pointer-events:none;"></div>
+  <div class="inner" style="text-align:center;animation:fadeUp 0.9s ease forwards;">
+    <div class="bb full" style="margin:0 auto 2rem;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="eyebrow" style="justify-content:center;margin-bottom:1.8rem;"><div class="dot"></div>PRODUCT OVERVIEW · CONFIDENTIAL · APRIL 2026</div>
+    <h1 style="font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:900;line-height:1.04;letter-spacing:-2px;margin-bottom:1.2rem;">Octave <span class="cy">EPD</span><br>Compliance Hub</h1>
+    <p style="font-size:1.08rem;color:var(--t2);max-width:600px;margin:0 auto 2.2rem;line-height:1.8;">An AI-first data platform that turns supplier records, product specs, and project data into certified Environmental Product Declarations — continuously, automatically, and audit-ready.</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:0.8rem;flex-wrap:wrap;margin-bottom:2.5rem;">
+      <span class="tag tcy">6 Aria Agents</span>
+      <span class="tag tye">EN 15804 Compliant</span>
+      <span class="tag tor">ETQ Reliance Native</span>
+      <span class="tag tgr">ISO 14025 Aligned</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════ EXEC SUMMARY — ELEVATOR PITCH ═══════ -->
+<section id="exec" style="background:linear-gradient(160deg,#0e0e14 0%,#1A1A1F 50%,#1e1e28 100%);position:relative;overflow:hidden;">
+  <!-- background glow -->
+  <div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(0,255,255,0.035) 0%,transparent 65%);pointer-events:none;"></div>
+
+  <div class="inner">
+    <div style="display:grid;grid-template-columns:1fr 1.05fr;gap:3rem;align-items:start;">
+
+      <!-- LEFT — pitch text -->
+      <div>
+        <div class="slabel r">Executive Summary</div>
+        <h2 class="stitle r" style="font-size:clamp(1.6rem,2.8vw,2.3rem);">
+          <span class="cy">EPD Compliance Hub</span><br>Elevator Pitch
+        </h2>
+
+        <div style="display:flex;flex-direction:column;gap:0.9rem;" class="r">
+
+          <div style="background:rgba(255,107,0,0.05);border-left:3px solid var(--or);border-radius:0 8px 8px 0;padding:0.85rem 1rem;">
+            <div style="font-size:0.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:0.4rem;">The Problem</div>
+            <p style="font-size:0.82rem;color:var(--t2);line-height:1.68;">Manufacturers face a hard deadline — every product needs a certified Environmental Product Declaration to stay compliant and win business. But generating one is slow, manual, and expensive — with data scattered across teams.</p>
+          </div>
+
+          <div style="background:rgba(255,245,0,0.04);border-left:3px solid var(--ye);border-radius:0 8px 8px 0;padding:0.85rem 1rem;">
+            <div style="font-size:0.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ye);margin-bottom:0.4rem;">The Pain — Across Every Role</div>
+            <div style="display:flex;flex-direction:column;gap:0.38rem;">
+              <div style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.79rem;color:var(--t2);line-height:1.55;"><span style="color:var(--cy);font-weight:700;flex-shrink:0;min-width:130px;">Sustainability leads</span><span>chasing LCA data manually across suppliers and systems</span></div>
+              <div style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.79rem;color:var(--t2);line-height:1.55;"><span style="color:var(--ye);font-weight:700;flex-shrink:0;min-width:130px;">Quality managers</span><span>validating incomplete supplier inputs with no single source of truth</span></div>
+              <div style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.79rem;color:var(--t2);line-height:1.55;"><span style="color:var(--or);font-weight:700;flex-shrink:0;min-width:130px;">Procurement teams</span><span>guessing at transport routes and material composition details</span></div>
+              <div style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.79rem;color:var(--t2);line-height:1.55;"><span style="color:var(--gr);font-weight:700;flex-shrink:0;min-width:130px;">Project managers</span><span>stuck waiting on compliance to move forward with delivery</span></div>
+            </div>
+          </div>
+
+          <div style="background:rgba(0,255,255,0.05);border-left:3px solid var(--cy);border-radius:0 8px 8px 0;padding:0.85rem 1rem;">
+            <div style="font-size:0.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cy);margin-bottom:0.4rem;">The Solution</div>
+            <p style="font-size:0.82rem;color:var(--t2);line-height:1.68;">An <strong style="color:var(--cy);">AI-first, plug-and-play app</strong> built on the Octave platform that turns EPD compliance into a continuous, automated process. Intelligent agents classify materials, extract and validate supplier data, map supply chains, and generate LCA-ready datasets — eliminating manual effort across every role.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT — outcomes + integration + CTA -->
+      <div>
+        <!-- Persona outcomes -->
+        <div style="font-size:0.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:0.7rem;" class="r">What each persona gets</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:1.3rem;" class="r">
+          <div style="background:var(--bg2);border:1px solid var(--b0);border-radius:9px;padding:0.8rem 1rem;display:grid;grid-template-columns:18px 130px 1fr;gap:8px;align-items:center;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--cy);flex-shrink:0;"></div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--cy);">Sustainability Lead</div>
+            <div style="font-size:0.75rem;color:var(--t2);">Real-time compliance visibility across the entire product portfolio</div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--b0);border-radius:9px;padding:0.8rem 1rem;display:grid;grid-template-columns:18px 130px 1fr;gap:8px;align-items:center;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--ye);flex-shrink:0;"></div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--ye);">Quality Manager</div>
+            <div style="font-size:0.75rem;color:var(--t2);">Validated, audit-ready data — assembled automatically, not manually</div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--b0);border-radius:9px;padding:0.8rem 1rem;display:grid;grid-template-columns:18px 130px 1fr;gap:8px;align-items:center;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--or);flex-shrink:0;"></div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--or);">Procurement Team</div>
+            <div style="font-size:0.75rem;color:var(--t2);">Accurate supply chain insights and transport data — no guesswork</div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--b0);border-radius:9px;padding:0.8rem 1rem;display:grid;grid-template-columns:18px 130px 1fr;gap:8px;align-items:center;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--gr);flex-shrink:0;"></div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--gr);">Project Manager</div>
+            <div style="font-size:0.75rem;color:var(--t2);">Zero delays from compliance bottlenecks — projects move uninterrupted</div>
+          </div>
+        </div>
+
+        <!-- Plug & play integrations -->
+        <div style="font-size:0.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:0.65rem;" class="r">Plug-and-play — works with your stack</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.3rem;" class="r">
+          <div style="background:linear-gradient(135deg,rgba(0,255,255,0.08),rgba(0,255,255,0.03));border:1px solid rgba(0,255,255,0.22);border-radius:9px;padding:0.85rem;text-align:center;">
+            <div style="font-size:1.1rem;margin-bottom:0.35rem;">🔗</div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--cy);margin-bottom:0.2rem;">Reliance</div>
+            <div style="font-size:0.65rem;color:var(--t3);line-height:1.4;">QMS-native data feed — supplier, NCR, material records</div>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(255,245,0,0.07),rgba(255,245,0,0.02));border:1px solid rgba(255,245,0,0.18);border-radius:9px;padding:0.85rem;text-align:center;">
+            <div style="font-size:1.1rem;margin-bottom:0.35rem;">⚡</div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--ye);margin-bottom:0.2rem;">Octave Loop</div>
+            <div style="font-size:0.65rem;color:var(--t3);line-height:1.4;">Live project data — BOM, procurement, supply chain</div>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(79,255,0,0.06),rgba(79,255,0,0.02));border:1px solid rgba(79,255,0,0.18);border-radius:9px;padding:0.85rem;text-align:center;">
+            <div style="font-size:1.1rem;margin-bottom:0.35rem;">📥</div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--gr);margin-bottom:0.2rem;">SRD Ingest</div>
+            <div style="font-size:0.65rem;color:var(--t3);line-height:1.4;">Direct ingest into Supplier Reference Database</div>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div style="background:linear-gradient(135deg,rgba(0,255,255,0.07),rgba(153,51,255,0.05));border:1px solid rgba(0,255,255,0.2);border-radius:12px;padding:1.1rem 1.2rem;text-align:center;" class="r">
+          <p style="font-size:0.78rem;color:var(--t2);line-height:1.65;margin-bottom:0.7rem;">Unlike traditional EPD vendors, this works <em style="color:var(--cy);">inside your data</em> — continuously, intelligently, without disrupting how your teams already work.</p>
+          <div style="font-size:1rem;font-weight:800;color:var(--cy);letter-spacing:0.3px;">EPD Compliance Hub</div>
+          <div style="font-size:0.78rem;color:var(--t2);margin-top:0.2rem;">Plug in · Automate compliance · Empower every team · <span style="color:var(--gr);">Stay certified.</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SLIDE 1 — WHAT IS EPD ═══════ -->
+<section id="s1" style="background:linear-gradient(180deg,#1A1A1F 0%,#1e1e26 100%);">
+  <div class="inner">
+    <div class="slabel r">Standards Foundation</div>
+    <h2 class="stitle r">What is an <span class="cy">Environmental Product Declaration?</span></h2>
+    <p class="ssub r">An EPD is a standardised, independently verified document that quantifies the environmental impact of a product across its full lifecycle — from raw material extraction to end of life. It is governed by ISO 14025 and EN 15804+A2.</p>
+    <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:2rem;align-items:start;">
+      <div>
+        <div class="callout cy r"><p><strong>ISO 14025:2006</strong> defines the principles and procedures for Type III environmental declarations — independently verified, LCA-based, quantified environmental data per declared unit.</p></div>
+        <div class="callout ye r" style="margin-top:0.8rem;"><p><strong>EN 15804+A2</strong> is the core European standard for construction products, defining the lifecycle modules A1 through D and the mandatory environmental indicators every EPD must report.</p></div>
+        <div style="margin-top:1.2rem;" class="r">
+          <div style="font-size:0.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:0.7rem;">Why it matters now</div>
+          <div class="blist">
+            <div class="bi"><span class="bd" style="background:var(--cy);"></span><span>EU Construction Products Regulation mandates EPDs for CE-marked products</span></div>
+            <div class="bi"><span class="bd" style="background:var(--ye);"></span><span>UK Net Zero Building Standard references EPD data in procurement</span></div>
+            <div class="bi"><span class="bd" style="background:var(--or);"></span><span>Japan Green Building mandates — no EPD means no specification, no bid, no sale</span></div>
+            <div class="bi"><span class="bd" style="background:var(--gr);"></span><span>Major clients (Lixil, GROHE, Roca) now require EPDs from all Tier 1 suppliers</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="r" style="animation-delay:0.15s;">
+        <div style="background:var(--bg2);border:1px solid var(--b0);border-radius:12px;padding:1.2rem;">
+          <div style="font-size:0.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:0.9rem;">Lifecycle modules — EN 15804+A2</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:grid;grid-template-columns:80px 1fr;gap:8px;align-items:center;">
+              <div style="background:rgba(0,255,255,0.1);border:1px solid rgba(0,255,255,0.25);border-radius:5px;padding:5px;text-align:center;"><div style="font-size:0.65rem;font-weight:700;color:var(--cy);">A1–A3</div><div style="font-size:0.55rem;color:var(--t3);">Product</div></div>
+              <div style="font-size:0.75rem;color:var(--t2);">Raw material extraction → manufacturing. Supplier-sourced data. Core of every EPD.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:80px 1fr;gap:8px;align-items:center;">
+              <div style="background:rgba(0,255,255,0.08);border:1px solid rgba(0,255,255,0.2);border-radius:5px;padding:5px;text-align:center;"><div style="font-size:0.65rem;font-weight:700;color:var(--cy);">A4–A5</div><div style="font-size:0.55rem;color:var(--t3);">Construction</div></div>
+              <div style="font-size:0.75rem;color:var(--t2);">Transport to site (A4) and installation (A5). Project-team sourced. A4 is the hardest module to automate.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:80px 1fr;gap:8px;align-items:center;">
+              <div style="background:rgba(255,245,0,0.08);border:1px solid rgba(255,245,0,0.2);border-radius:5px;padding:5px;text-align:center;"><div style="font-size:0.65rem;font-weight:700;color:var(--ye);">B1–B7</div><div style="font-size:0.55rem;color:var(--t3);">Use stage</div></div>
+              <div style="font-size:0.75rem;color:var(--t2);">Maintenance, energy in use, refurbishment. Often modelled from scenarios. Optional for many product categories.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:80px 1fr;gap:8px;align-items:center;">
+              <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.2);border-radius:5px;padding:5px;text-align:center;"><div style="font-size:0.65rem;font-weight:700;color:var(--or);">C1–C4</div><div style="font-size:0.55rem;color:var(--t3);">End of life</div></div>
+              <div style="font-size:0.75rem;color:var(--t2);">Deconstruction, waste processing, disposal. Scenario-modelled. Mandatory for EN 15804+A2.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:80px 1fr;gap:8px;align-items:center;">
+              <div style="background:rgba(153,51,255,0.08);border:1px solid rgba(153,51,255,0.2);border-radius:5px;padding:5px;text-align:center;"><div style="font-size:0.65rem;font-weight:700;color:var(--vi);">D</div><div style="font-size:0.55rem;color:var(--t3);">Beyond SB</div></div>
+              <div style="font-size:0.75rem;color:var(--t2);">Recycling and recovery potential. Informational — not comparable across EPDs. Scenario-modelled.</div>
+            </div>
+          </div>
+          <div style="margin-top:1rem;padding-top:0.8rem;border-top:1px solid var(--b0);">
+            <div style="font-size:0.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--or);margin-bottom:0.5rem;">Certified outputs</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+              <span class="tag tcy" style="font-size:0.58rem;">GWP — kg CO₂ eq</span>
+              <span class="tag tye" style="font-size:0.58rem;">ODP — kg CFC-11 eq</span>
+              <span class="tag tor" style="font-size:0.58rem;">AP — kg SO₂ eq</span>
+              <span class="tag tgr" style="font-size:0.58rem;">EP — kg PO₄ eq</span>
+              <span class="tag tvi" style="font-size:0.58rem;">POCP — smog</span>
+              <span class="tag tcy" style="font-size:0.58rem;">ADP — fossil + mineral</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SLIDE 2 — PROCEDURE ═══════ -->
+<section id="s2" style="background:linear-gradient(180deg,#1e1e26 0%,#1A1A1F 100%);">
+  <div class="inner">
+    <div class="slabel r">How it works today</div>
+    <h2 class="stitle r">The EPD generation procedure <span class="or">— manually</span></h2>
+    <p class="ssub r" style="margin-bottom:1.2rem;">Generating a single compliant EPD requires six sequential stages, three external parties, and typically 3–6 months of elapsed time. Each stage is a potential bottleneck.</p>
+    <div class="wflow r" style="gap:0.2rem;margin-bottom:1.8rem;">
+      <div class="ws w-cy"><div class="wn">Stage 1</div><div class="wi">📋</div><div class="wt">PCR Selection</div><div class="wd">Match product to category rules and programme operator</div></div>
+      <div class="warr">→</div>
+      <div class="ws w-ye"><div class="wn">Stage 2</div><div class="wi">📦</div><div class="wt">Data Collection</div><div class="wd">Gather material composition, supplier specs, transport data</div></div>
+      <div class="warr">→</div>
+      <div class="ws w-or"><div class="wn">Stage 3</div><div class="wi">🧬</div><div class="wt">LCA Study</div><div class="wd">Model lifecycle per ISO 14040 / 14044 using ecoinvent datasets</div></div>
+      <div class="warr">→</div>
+      <div class="ws w-gr"><div class="wn">Stage 4</div><div class="wi">📄</div><div class="wt">EPD Drafting</div><div class="wd">Assemble declaration document per PCR format</div></div>
+      <div class="warr">→</div>
+      <div class="ws w-vi"><div class="wn">Stage 5</div><div class="wi">✅</div><div class="wt">Verification</div><div class="wd">Independent third-party review per ISO 14025 §8</div></div>
+      <div class="warr">→</div>
+      <div class="ws w-cy"><div class="wn">Stage 6</div><div class="wi">🏆</div><div class="wt">Publication</div><div class="wd">Certified EPD issued and maintained by programme operator</div></div>
+    </div>
+    <div class="grid g3 r">
+      <div class="card"><div class="ct ct-or"></div><div class="ci ci-or">⏱</div><h3>3–6 months per EPD</h3><p>85% of the time is spent on Stage 2 — chasing supplier datasheets in inconsistent formats across email, PDF, and ERP systems.</p></div>
+      <div class="card"><div class="ct ct-ye"></div><div class="ci ci-ye">🔄</div><h3>5-year expiry cycle</h3><p>Every EPD expires and must be re-declared. When supplier compositions change, existing certificates are immediately invalidated — with no automated detection.</p></div>
+      <div class="card"><div class="ct ct-cy"></div><div class="ci ci-cy">💰</div><h3>$5M — the pain baseline</h3><p>Lixil's documented 5-year manual EPD spend. At one-third the cost, a platform solution delivers immediate ROI while converting one-time consulting to recurring value.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SLIDE 3 — PERSONA ═══════ -->
+<section id="s3" style="background:linear-gradient(180deg,#1A1A1F 0%,#1e1e26 100%);">
+  <div class="inner">
+    <div class="slabel r">Who we are building for</div>
+    <h2 class="stitle r">Meet <span class="cy">Padma</span> — Quality Assurance Manager</h2>
+    <p class="ssub r">Padma ensures product quality and regulatory compliance across the organisation. She relies on the QMS to provide real-time visibility, identify risks early, and ensure the organisation is always audit-ready.</p>
+    <div style="display:grid;grid-template-columns:1fr 1.55fr;gap:2rem;align-items:start;">
+      <div class="pcard r">
+        <div class="pav">👩‍🔬</div>
+        <div style="font-size:1rem;font-weight:700;margin-bottom:0.12rem;">Padma Rao</div>
+        <div style="font-size:0.7rem;color:var(--cy);font-weight:600;letter-spacing:0.4px;margin-bottom:0.85rem;">Quality Assurance Manager · Seattle, WA</div>
+        <div style="font-size:0.8rem;color:var(--t2);line-height:1.58;font-style:italic;border-left:2px solid rgba(0,255,255,0.28);padding-left:0.75rem;margin-bottom:0.85rem;">"I need to know, at any moment, whether we're compliant, where we're at risk, and what needs attention before it becomes a problem."</div>
+        <div style="margin-bottom:0.85rem;">
+          <span class="ptag">Fragmented data</span><span class="ptag">No real-time visibility</span>
+          <span class="ptag">Too much noise</span><span class="ptag">Reactive management</span>
+          <span class="ptag">Manual audit prep</span><span class="ptag">EPD blind spots</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+          <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.18);border-radius:7px;padding:0.6rem;text-align:center;"><div style="font-size:1rem;font-weight:800;color:var(--or);">0</div><div style="font-size:0.55rem;color:var(--t3);">Target major audit findings</div></div>
+          <div style="background:rgba(255,245,0,0.06);border:1px solid rgba(255,245,0,0.18);border-radius:7px;padding:0.6rem;text-align:center;"><div style="font-size:1rem;font-weight:800;color:var(--ye);">&lt;24h</div><div style="font-size:0.55rem;color:var(--t3);">Compliance data latency target</div></div>
+        </div>
+        <div style="margin-top:0.75rem;padding-top:0.7rem;border-top:1px solid var(--b0);display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+          <div style="font-size:0.6rem;color:var(--t3);"><span style="color:var(--cy);font-weight:700;">Experience</span><br>10–15+ yrs QA/Regulatory</div>
+          <div style="font-size:0.6rem;color:var(--t3);"><span style="color:var(--cy);font-weight:700;">Reports to</span><br>Director / VP of Quality</div>
+          <div style="font-size:0.6rem;color:var(--t3);"><span style="color:var(--cy);font-weight:700;">Sector</span><br>Industrial · FDA · ISO · GMP</div>
+          <div style="font-size:0.6rem;color:var(--t3);"><span style="color:var(--cy);font-weight:700;">Deviation target</span><br>20–30% YoY reduction</div>
+        </div>
+      </div>
+      <div class="r" style="animation-delay:0.15s;">
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:0.75rem;">Jobs to be done — EPD context</div>
+        <div class="blist" style="margin-bottom:1.2rem;">
+          <div class="bi"><span class="bd" style="background:var(--cy);"></span><span>Know at any moment which products have valid certified EPDs and which are at compliance risk — without manually checking every certificate</span></div>
+          <div class="bi"><span class="bd" style="background:var(--ye);"></span><span>Get proactively alerted when a supplier NCR or composition change invalidates a live EPD — before the auditor finds it first</span></div>
+          <div class="bi"><span class="bd" style="background:var(--or);"></span><span>Prepare audit-ready EPD documentation without manual assembly — complete data lineage from source spec to certified declaration on demand</span></div>
+          <div class="bi"><span class="bd" style="background:var(--gr);"></span><span>Reduce EPD-related deviations and re-work by detecting expiry and material change risks early, not after they've already caused a compliance failure</span></div>
+        </div>
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:0.7rem;">Success metrics Padma owns</div>
+        <div class="grid g2" style="gap:8px;">
+          <div style="background:rgba(0,255,255,0.04);border:1px solid rgba(0,255,255,0.12);border-radius:7px;padding:0.65rem;"><div style="font-size:0.62rem;font-weight:700;color:var(--cy);margin-bottom:0.18rem;">Audit outcomes</div><div style="font-size:0.72rem;color:var(--t2);">Zero major findings · &lt;2 minor per audit</div></div>
+          <div style="background:rgba(79,255,0,0.04);border:1px solid rgba(79,255,0,0.12);border-radius:7px;padding:0.65rem;"><div style="font-size:0.62rem;font-weight:700;color:var(--gr);margin-bottom:0.18rem;">Risk detection speed</div><div style="font-size:0.72rem;color:var(--t2);">Target: &lt;24–48h to surface compliance risk</div></div>
+          <div style="background:rgba(255,245,0,0.04);border:1px solid rgba(255,245,0,0.12);border-radius:7px;padding:0.65rem;"><div style="font-size:0.62rem;font-weight:700;color:var(--ye);margin-bottom:0.18rem;">Deviation reduction</div><div style="font-size:0.72rem;color:var(--t2);">Target: 20–30% YoY — proactive not reactive</div></div>
+          <div style="background:rgba(255,107,0,0.04);border:1px solid rgba(255,107,0,0.12);border-radius:7px;padding:0.65rem;"><div style="font-size:0.62rem;font-weight:700;color:var(--or);margin-bottom:0.18rem;">Reporting accuracy</div><div style="font-size:0.72rem;color:var(--t2);">Target: ≥99%, audit-defensible at any time</div></div>
+        </div>
+        <div class="callout cy" style="margin-top:1rem;"><p><strong>What success looks like:</strong> EPD compliance status is visible in real time, not discovered during an audit. Every material change that invalidates a declaration triggers an automatic alert. Padma walks into every audit with a complete, defensible data trail — assembled by the platform, not by her team.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SLIDE 4 — CHALLENGES ═══════ -->
+<section id="s4" style="background:linear-gradient(180deg,#1e1e26 0%,#1A1A1F 100%);">
+  <div class="inner">
+    <div class="slabel r">The Problem</div>
+    <h2 class="stitle r">Five challenges that break EPD compliance <span class="or">for QMS teams</span></h2>
+    <p class="ssub r">These are not technology gaps — they are structural data problems that no EPD calculation tool can solve because they all start downstream of where the data actually lives.</p>
+    <div class="grid g2 r" style="gap:1rem;margin-bottom:1.4rem;">
+      <div class="card"><div class="ct ct-or"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.45rem;"><div class="ci ci-or" style="margin-bottom:0;">📋</div><span style="font-size:0.6rem;color:var(--or);font-weight:700;letter-spacing:1px;">CHALLENGE 1</span></div>
+        <h3>Material data is trapped in silos</h3>
+        <p>Supplier specs, composition certificates, and manufacturing data live in emails, PDFs, and ERPs — never structured or connected to EN 15804-compatible taxonomy. Every EPD starts from scratch.</p>
+        <div style="margin-top:0.6rem;font-size:0.68rem;color:var(--or);">Padma's pain: "I spend 60% of my time chasing supplier datasheets."</div>
+      </div>
+      <div class="card"><div class="ct ct-ye"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.45rem;"><div class="ci ci-ye" style="margin-bottom:0;">🔗</div><span style="font-size:0.6rem;color:var(--ye);font-weight:700;letter-spacing:1px;">CHALLENGE 2</span></div>
+        <h3>A4 transport data doesn't exist in EPD tools</h3>
+        <p>EN 15804 A4 module requires Tier 1–3 supplier origins and transport routes. No EPD software has access to procurement data. It gets estimated or omitted — creating a compliance gap.</p>
+        <div style="margin-top:0.6rem;font-size:0.68rem;color:var(--ye);">Impact: A4 is the most commonly incorrect module in industrial EPDs.</div>
+      </div>
+      <div class="card"><div class="ct ct-cy"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.45rem;"><div class="ci ci-cy" style="margin-bottom:0;">⏱</div><span style="font-size:0.6rem;color:var(--cy);font-weight:700;letter-spacing:1px;">CHALLENGE 3</span></div>
+        <h3>EPDs expire and nobody is watching</h3>
+        <p>5-year expiry. Supplier compositions change. Regulatory requirements update. Today there is no system monitoring this continuously — it's a calendar reminder that gets missed in a busy QA function.</p>
+        <div style="margin-top:0.6rem;font-size:0.68rem;color:var(--cy);">Padma's risk: expired EPDs discovered during customer audit, not before.</div>
+      </div>
+      <div class="card"><div class="ct ct-gr"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.45rem;"><div class="ci ci-gr" style="margin-bottom:0;">🔍</div><span style="font-size:0.6rem;color:var(--gr);font-weight:700;letter-spacing:1px;">CHALLENGE 4</span></div>
+        <h3>No traceability from source to certificate</h3>
+        <p>When an auditor asks "where did this GWP figure come from?" — there is no answer. Data was assembled manually across disconnected tools with no immutable audit log. Re-declaration means starting over.</p>
+        <div style="margin-top:0.6rem;font-size:0.68rem;color:var(--gr);">ISO 14025 §8 requires independent verification — impossible without lineage.</div>
+      </div>
+    </div>
+    <div class="card r" style="border-color:rgba(255,107,0,0.2);background:rgba(255,107,0,0.04);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="ci ci-or" style="margin-bottom:0;flex-shrink:0;">⚠️</div>
+        <div>
+          <div style="font-size:0.62rem;font-weight:700;color:var(--or);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:0.25rem;">Challenge 5 — The calculation tools solve the wrong problem</div>
+          <p style="font-size:0.8rem;color:var(--t2);line-height:1.6;">SimaPro and OneClick LCA have powerful calculation engines sitting on top of weak, manually assembled data. They solve the maths problem. They cannot solve the data problem — because they have no foothold in industrial procurement or QMS workflows. Octave is already inside both.</p>
+        </div>
+      </div>
+    </div>
+    <div class="stats st3 r">
+      <div class="stat" style="border-top:2px solid var(--or);"><div class="sv or">$5M</div><div class="sl">Lixil 5-year manual EPD cost — the documented baseline</div></div>
+      <div class="stat" style="border-top:2px solid var(--ye);"><div class="sv ye">85%</div><div class="sl">Of EPD effort is data collection — not LCA calculation</div></div>
+      <div class="stat" style="border-top:2px solid var(--cy);"><div class="sv cy">3–6mo</div><div class="sl">Average time for a single compliant declaration today</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SLIDE 5 — SOLUTION ═══════ -->
+<section id="s5" style="background:linear-gradient(180deg,#1A1A1F 0%,#1e1e26 100%);">
+  <div class="inner">
+    <div class="slabel r">The Solution</div>
+    <h2 class="stitle r">Octave EPD Compliance Hub —<br><span class="cy">the data layer the market is missing</span></h2>
+    <p class="ssub r">Octave is not competing with SimaPro or OneClick LCA. It owns the authoritative upstream data those tools are trying to reconstruct — and builds an AI intelligence layer on top. The platform sits at the centre of four actor groups.</p>
+    <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:2rem;align-items:start;" class="r">
+      <div>
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:0.8rem;">Platform positioning</div>
+        <div class="compare">
+          <div class="cmp old">
+            <h3>Without the Hub</h3>
+            <ul>
+              <li>Manual supplier chasing per project</li>
+              <li>Inconsistent data, missing fields</li>
+              <li>LCA consultant: weeks of assembly</li>
+              <li>A4 module estimated or missing</li>
+              <li>No expiry alert — discovered in audit</li>
+              <li>No portfolio carbon view</li>
+            </ul>
+          </div>
+          <div class="cmp new">
+            <h3>With the Hub</h3>
+            <ul>
+              <li>Supplier data auto-ingested from ETQ</li>
+              <li>EN 15804 auto-classification + scoring</li>
+              <li>Agents generate LCA package in hours</li>
+              <li>A4 calculated from live supplier graph</li>
+              <li>Continuous monitoring — 90/60/30d alerts</li>
+              <li>Portfolio carbon dashboard live</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout cy" style="margin-top:1rem;"><p><strong>Design principle:</strong> ETQ Reliance is the data warehouse. The EPD Compliance Hub is the intelligence layer that makes that data do something — classifying, computing, alerting, and certifying automatically.</p></div>
+      </div>
+      <div>
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:0.8rem;">Four-layer architecture</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:linear-gradient(135deg,rgba(0,255,255,0.09),rgba(0,255,255,0.03));border:1px solid rgba(0,255,255,0.25);border-radius:9px;padding:0.85rem 1rem;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;">
+            <div><div style="font-size:0.78rem;font-weight:700;color:var(--cy);margin-bottom:0.18rem;">Layer 1 — Data Foundation</div><div style="font-size:0.72rem;color:var(--t2);">ETQ Reliance: supplier master, material records, NCRs, procurement, documents</div></div>
+            <span class="tag tcy" style="font-size:0.58rem;">OCTAVE OWNS</span>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(153,51,255,0.08),rgba(153,51,255,0.03));border:1px solid rgba(153,51,255,0.22);border-radius:9px;padding:0.85rem 1rem;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;">
+            <div><div style="font-size:0.78rem;font-weight:700;color:var(--vi);margin-bottom:0.18rem;">Layer 2 — Aria Intelligence</div><div style="font-size:0.72rem;color:var(--t2);">6 specialist AI agents: classification, traceability, structuring, monitoring, analytics, verification</div></div>
+            <span class="tag tvi" style="font-size:0.58rem;">OCTAVE OWNS</span>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid var(--b0);border-radius:9px;padding:0.85rem 1rem;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;opacity:0.75;">
+            <div><div style="font-size:0.78rem;font-weight:700;color:var(--t2);margin-bottom:0.18rem;">Layer 3 — Calculation Engine</div><div style="font-size:0.72rem;color:var(--t3);">OneClick LCA / SimaPro API — LCA calculation and GWP/ODP/AP output</div></div>
+            <span class="tag" style="font-size:0.58rem;color:var(--t3);border-color:var(--b1);">PARTNER</span>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid var(--b0);border-radius:9px;padding:0.85rem 1rem;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;opacity:0.75;">
+            <div><div style="font-size:0.78rem;font-weight:700;color:var(--t2);margin-bottom:0.18rem;">Layer 4 — Verification</div><div style="font-size:0.72rem;color:var(--t3);">IBU · EPD International · BRE — third-party certificate issuance</div></div>
+            <span class="tag" style="font-size:0.58rem;color:var(--t3);border-color:var(--b1);">THIRD PARTY</span>
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <div style="font-size:0.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:0.65rem;">The 6 Aria agents</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            <span class="mpill cy">1 · Material Intelligence</span>
+            <span class="mpill ye">2 · Supply Chain Traceability</span>
+            <span class="mpill or">3 · EPD Data Structuring</span>
+            <span class="mpill cy">4 · Compliance Monitoring</span>
+            <span class="mpill gr">5 · Portfolio Analytics</span>
+            <span class="mpill vi">6 · Verification Liaison</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SLIDE 6 — MODULES ═══════ -->
+<section id="s6" style="background:linear-gradient(180deg,#1e1e26 0%,#1A1A1F 100%);">
+  <div class="inner">
+    <div class="slabel r">Platform Architecture</div>
+    <h2 class="stitle r">11 modules across <span class="cy">4 platform layers</span></h2>
+    <p class="ssub r" style="margin-bottom:1.2rem;">Each module has a discrete responsibility. Together they form a complete, auditable pipeline from raw ETQ Reliance data to certified EPD and portfolio carbon intelligence.</p>
+    <!-- Layer A -->
+    <div style="font-size:0.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cy);margin-bottom:0.5rem;" class="r">Layer A — Data Foundation</div>
+    <div class="grid g3 r" style="gap:8px;margin-bottom:1rem;">
+      <div class="card" style="padding:0.85rem;"><div class="ct ct-cy"></div><div style="font-size:0.6rem;color:var(--cy);font-weight:700;margin-bottom:0.3rem;">M1</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">Product Definition</div><div style="font-size:0.72rem;color:var(--t2);">SKU master · declared unit · PCR assignment · product status tracking</div></div>
+      <div class="card" style="padding:0.85rem;"><div class="ct ct-cy"></div><div style="font-size:0.6rem;color:var(--cy);font-weight:700;margin-bottom:0.3rem;">M2</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">Supplier Repository</div><div style="font-size:0.72rem;color:var(--t2);">Supplier master · EPD filing · material records · MSDS · document versioning</div></div>
+      <div class="card" style="padding:0.85rem;"><div class="ct ct-cy"></div><div style="font-size:0.6rem;color:var(--cy);font-weight:700;margin-bottom:0.3rem;">M3</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">PCR Library</div><div style="font-size:0.72rem;color:var(--t2);">Category rules · module requirements · validity periods · regulatory feeds</div></div>
+    </div>
+    <!-- Layer B -->
+    <div style="font-size:0.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--vi);margin-bottom:0.5rem;" class="r">Layer B — Intelligence and Analysis</div>
+    <div class="grid g3 r" style="gap:8px;margin-bottom:1rem;">
+      <div class="card" style="padding:0.85rem;"><div class="ct ct-vi"></div><div style="font-size:0.6rem;color:var(--vi);font-weight:700;margin-bottom:0.3rem;">M4 · Agent 1</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">Data Ingestion + Extraction</div><div style="font-size:0.72rem;color:var(--t2);">Parse EPD PDFs and specs · extract fields · confidence scoring · change detection</div></div>
+      <div class="card" style="padding:0.85rem;"><div class="ct ct-vi"></div><div style="font-size:0.6rem;color:var(--vi);font-weight:700;margin-bottom:0.3rem;">M5 · Agents 1–3</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">LCA Analysis Management</div><div style="font-size:0.72rem;color:var(--t2);">Module mapping A1–D · completeness scorecard · LCA payload · re-run queue</div></div>
+      <div class="card" style="padding:0.85rem;"><div class="ct ct-vi"></div><div style="font-size:0.6rem;color:var(--vi);font-weight:700;margin-bottom:0.3rem;">M6 · Agent 5</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">Portfolio Analytics</div><div style="font-size:0.72rem;color:var(--t2);">Carbon benchmarking · supplier scorecard · substitution engine · ESG narratives</div></div>
+    </div>
+    <!-- Layer C -->
+    <div style="font-size:0.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:0.5rem;" class="r">Layer C — Compliance and Reporting</div>
+    <div class="grid g3 r" style="gap:8px;margin-bottom:1rem;">
+      <div class="card" style="padding:0.85rem;"><div class="ct ct-or"></div><div style="font-size:0.6rem;color:var(--or);font-weight:700;margin-bottom:0.3rem;">M7 · Agent 4</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">Rules and Compliance Engine</div><div style="font-size:0.72rem;color:var(--t2);">5 rule sets · severity scoring · re-declaration trigger · ISO 14025 §7.3 logic</div></div>
+      <div class="card" style="padding:0.85rem;"><div class="ct ct-or"></div><div style="font-size:0.6rem;color:var(--or);font-weight:700;margin-bottom:0.3rem;">M8</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">QMS Dashboard + Workflows</div><div style="font-size:0.72rem;color:var(--t2);">Padma's live view · alert feed · work queue · CAPA tracking · HiTL review queue</div></div>
+      <div class="card" style="padding:0.85rem;"><div class="ct ct-or"></div><div style="font-size:0.6rem;color:var(--or);font-weight:700;margin-bottom:0.3rem;">M9</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">Audit and Traceability</div><div style="font-size:0.72rem;color:var(--t2);">Full field lineage · immutable log · verification trail · on-demand audit packs</div></div>
+    </div>
+    <!-- Layer D -->
+    <div style="font-size:0.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:0.5rem;" class="r">Layer D — Integration and Connectivity</div>
+    <div class="grid g3 r" style="gap:8px;">
+      <div class="card" style="padding:0.85rem;opacity:0.85;"><div class="ct" style="background:var(--t3);"></div><div style="font-size:0.6rem;color:var(--t3);font-weight:700;margin-bottom:0.3rem;">M10a</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">ETQ Reliance API</div><div style="font-size:0.72rem;color:var(--t2);">Bidirectional sync · NCR webhooks · change events · certificate writeback</div></div>
+      <div class="card" style="padding:0.85rem;opacity:0.85;"><div class="ct" style="background:var(--t3);"></div><div style="font-size:0.6rem;color:var(--t3);font-weight:700;margin-bottom:0.3rem;">M10b · Agent 6</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">LCA and Verifier APIs</div><div style="font-size:0.72rem;color:var(--t2);">OneClick LCA · SimaPro · IBU · EPD Intl · BRE submission and ingestion</div></div>
+      <div class="card" style="padding:0.85rem;opacity:0.85;"><div class="ct" style="background:var(--t3);"></div><div style="font-size:0.6rem;color:var(--t3);font-weight:700;margin-bottom:0.3rem;">M11</div><div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">Notification Engine</div><div style="font-size:0.72rem;color:var(--t2);">Email · Slack · Teams · configurable thresholds · escalation · supplier alerts</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SLIDE 7 — WORKFLOWS ═══════ -->
+<section id="s7" style="background:linear-gradient(180deg,#1A1A1F 0%,#1e1e26 100%);">
+  <div class="inner">
+    <div class="slabel r">End-to-End Workflows</div>
+    <h2 class="stitle r">Three operating workflows — <span class="cy">one connected system</span></h2>
+    <p class="ssub r" style="margin-bottom:1.2rem;">The platform runs three concurrent workflows. The generation workflow runs per product. The monitoring workflow runs continuously. The verification workflow runs once per declaration ready for certification.</p>
+
+    <!-- Workflow 1 -->
+    <div style="background:var(--bg2);border:1px solid var(--b0);border-radius:12px;padding:1.2rem;margin-bottom:1rem;" class="r">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.9rem;">
+        <span class="tag tcy">Workflow 1</span>
+        <span style="font-size:0.9rem;font-weight:700;">EPD Generation — BOM to certified declaration</span>
+        <span style="font-size:0.68rem;color:var(--t3);margin-left:auto;">Agents 1 · 2 · 3 · 6</span>
+      </div>
+      <div class="wflow" style="gap:0.15rem;">
+        <div class="ws w-cy" style="max-width:130px;"><div class="wn">M2 + M10a</div><div class="wi">📥</div><div class="wt">Ingest</div><div class="wd">ETQ Reliance sync pulls supplier and BOM data</div></div>
+        <div class="warr">→</div>
+        <div class="ws w-vi" style="max-width:130px;"><div class="wn">M4 · Agent 1</div><div class="wi">🧬</div><div class="wt">Classify</div><div class="wd">EN 15804 + ETIM taxonomy mapping with confidence score</div></div>
+        <div class="warr">→</div>
+        <div class="ws w-ye" style="max-width:130px;"><div class="wn">M5 · Agent 2</div><div class="wi">🗺️</div><div class="wt">Map A4</div><div class="wd">Tier 1–3 supplier graph + transport CO₂ calculation</div></div>
+        <div class="warr">→</div>
+        <div class="ws w-or" style="max-width:130px;"><div class="wn">M5 · Agent 3</div><div class="wi">📦</div><div class="wt">Structure</div><div class="wd">Module map A1–D · completeness scorecard · API payload</div></div>
+        <div class="warr">→</div>
+        <div class="ws w-gr" style="max-width:130px;"><div class="wn">M10b</div><div class="wi">⚙️</div><div class="wt">Calculate</div><div class="wd">OneClick LCA / SimaPro returns GWP, ODP, AP indicators</div></div>
+        <div class="warr">→</div>
+        <div class="ws w-vi" style="max-width:130px;"><div class="wn">M10b · Agent 6</div><div class="wi">🏆</div><div class="wt">Certify</div><div class="wd">Submit to IBU / EPD Intl / BRE · ingest certificate</div></div>
+      </div>
+      <div style="margin-top:0.7rem;display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:0.65rem;color:var(--t3);">Quality gates:</span>
+        <span style="font-size:0.65rem;color:var(--cy);">Confidence &lt;85% → M8 review queue</span>
+        <span style="font-size:0.65rem;color:var(--t3);">·</span>
+        <span style="font-size:0.65rem;color:var(--ye);">Completeness &lt;threshold → remediation checklist</span>
+        <span style="font-size:0.65rem;color:var(--t3);">·</span>
+        <span style="font-size:0.65rem;color:var(--or);">Verifier rejection → Agent 6 remediation brief</span>
+      </div>
+    </div>
+
+    <!-- Workflow 2 -->
+    <div style="background:var(--bg2);border:1px solid var(--b0);border-radius:12px;padding:1.2rem;margin-bottom:1rem;" class="r">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.9rem;">
+        <span class="tag tor">Workflow 2</span>
+        <span style="font-size:0.9rem;font-weight:700;">Compliance Monitoring — continuous background scan</span>
+        <span style="font-size:0.68rem;color:var(--t3);margin-left:auto;">Agent 4 · daily</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+        <div style="background:var(--bg3);border-radius:7px;padding:0.7rem;">
+          <div style="font-size:0.6rem;color:var(--or);font-weight:700;margin-bottom:0.25rem;">Trigger 1</div>
+          <div style="font-size:0.72rem;font-weight:700;margin-bottom:0.15rem;">EPD expiry</div>
+          <div style="font-size:0.65rem;color:var(--t2);">90 / 60 / 30-day advance warnings to Padma</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:7px;padding:0.7rem;">
+          <div style="font-size:0.6rem;color:var(--ye);font-weight:700;margin-bottom:0.25rem;">Trigger 2</div>
+          <div style="font-size:0.72rem;font-weight:700;margin-bottom:0.15rem;">Material change</div>
+          <div style="font-size:0.65rem;color:var(--t2);">NCR from ETQ triggers affected EPD identification</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:7px;padding:0.7rem;">
+          <div style="font-size:0.6rem;color:var(--cy);font-weight:700;margin-bottom:0.25rem;">Trigger 3</div>
+          <div style="font-size:0.72rem;font-weight:700;margin-bottom:0.15rem;">PCR version update</div>
+          <div style="font-size:0.65rem;color:var(--t2);">Programme operator publishes new PCR requirements</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:7px;padding:0.7rem;">
+          <div style="font-size:0.6rem;color:var(--gr);font-weight:700;margin-bottom:0.25rem;">Engine</div>
+          <div style="font-size:0.72rem;font-weight:700;margin-bottom:0.15rem;">Severity scoring</div>
+          <div style="font-size:0.65rem;color:var(--t2);">Critical / High / Medium / Low — SLA assigned per severity</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:7px;padding:0.7rem;">
+          <div style="font-size:0.6rem;color:var(--vi);font-weight:700;margin-bottom:0.25rem;">Output</div>
+          <div style="font-size:0.72rem;font-weight:700;margin-bottom:0.15rem;">Work queue + re-run</div>
+          <div style="font-size:0.65rem;color:var(--t2);">Task raised in M8 · Workflow 1 re-triggered for affected products</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workflow 3 — Supplier ingestion -->
+    <div style="background:var(--bg2);border:1px solid var(--b0);border-radius:12px;padding:1.2rem;" class="r">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.9rem;">
+        <span class="tag tye">Workflow 3</span>
+        <span style="font-size:0.9rem;font-weight:700;">Supplier data ingestion — upload to QMS notification</span>
+        <span style="font-size:0.68rem;color:var(--t3);margin-left:auto;">M4 · M7 · M8 · M11</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">
+        <div style="background:var(--bg3);border-left:3px solid var(--ye);border-radius:0 7px 7px 0;padding:0.7rem;">
+          <div style="font-size:0.6rem;color:var(--ye);font-weight:700;margin-bottom:0.25rem;">Step 1</div>
+          <div style="font-size:0.72rem;font-weight:700;margin-bottom:0.15rem;">Supplier uploads</div>
+          <div style="font-size:0.65rem;color:var(--t2);">Certified EPD PDF <em>or</em> product spec / TDS / MSDS via portal or ETQ sync</div>
+        </div>
+        <div style="background:var(--bg3);border-left:3px solid var(--vi);border-radius:0 7px 7px 0;padding:0.7rem;">
+          <div style="font-size:0.6rem;color:var(--vi);font-weight:700;margin-bottom:0.25rem;">Step 2</div>
+          <div style="font-size:0.72rem;font-weight:700;margin-bottom:0.15rem;">M4 extracts + diffs</div>
+          <div style="font-size:0.65rem;color:var(--t2);">Agent parses fields · confidence-scores each · diffs against existing record</div>
+        </div>
+        <div style="background:var(--bg3);border-left:3px solid var(--or);border-radius:0 7px 7px 0;padding:0.7rem;">
+          <div style="font-size:0.6rem;color:var(--or);font-weight:700;margin-bottom:0.25rem;">Step 3</div>
+          <div style="font-size:0.72rem;font-weight:700;margin-bottom:0.15rem;">Change detected</div>
+          <div style="font-size:0.65rem;color:var(--t2);">NCR auto-raised in ETQ · Padma alerted · affected EPDs identified</div>
+        </div>
+        <div style="background:var(--bg3);border-left:3px solid var(--cy);border-radius:0 7px 7px 0;padding:0.7rem;">
+          <div style="font-size:0.6rem;color:var(--cy);font-weight:700;margin-bottom:0.25rem;">Step 4</div>
+          <div style="font-size:0.72rem;font-weight:700;margin-bottom:0.15rem;">LCA re-run queued</div>
+          <div style="font-size:0.65rem;color:var(--t2);">Workflow 1 triggered automatically for all affected products</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SLIDE 8 — SUMMARY ═══════ -->
+<section id="s8" style="background:linear-gradient(145deg,#0d0d12,#1A1A1F,#1e1e26);text-align:center;">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(0,255,255,0.04) 0%,transparent 65%);pointer-events:none;"></div>
+  <div class="inner r">
+    <div class="bb full" style="margin:0 auto 2rem;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="slabel" style="text-align:center;margin-bottom:0.7rem;">Solution Summary</div>
+    <h2 class="stitle" style="font-size:clamp(1.8rem,3.5vw,3rem);">The data asset already exists.<br><span class="cy">The intelligence layer is what gets built.</span></h2>
+    <p style="font-size:0.95rem;color:var(--t2);max-width:680px;margin:0 auto 2rem;line-height:1.78;">No EPD vendor can replicate Octave's starting position inside ETQ Reliance. The Compliance Hub is the refinery that turns raw QMS data into certified declarations, carbon intelligence, and regulatory protection — automatically.</p>
+
+    <!-- 4 big takeaways -->
+    <div class="grid g4" style="max-width:920px;margin:0 auto 2rem;text-align:left;gap:10px;">
+      <div class="card" style="border-color:rgba(0,255,255,0.2);background:rgba(0,255,255,0.04);padding:1rem;">
+        <div class="ct ct-cy"></div>
+        <div style="font-size:0.65rem;font-weight:700;color:var(--cy);letter-spacing:1px;text-transform:uppercase;margin-bottom:0.35rem;">Data foundation</div>
+        <p style="font-size:0.78rem;color:var(--t2);line-height:1.55;">11 modules across 4 layers. ETQ Reliance feeds 39 structured fields into the pipeline — no manual data collection needed.</p>
+      </div>
+      <div class="card" style="border-color:rgba(153,51,255,0.2);background:rgba(153,51,255,0.04);padding:1rem;">
+        <div class="ct ct-vi"></div>
+        <div style="font-size:0.65rem;font-weight:700;color:var(--vi);letter-spacing:1px;text-transform:uppercase;margin-bottom:0.35rem;">AI agents</div>
+        <p style="font-size:0.78rem;color:var(--t2);line-height:1.55;">6 Aria specialist agents. Each owns a discrete job — from EN 15804 classification to certification submission. Human review only for exceptions.</p>
+      </div>
+      <div class="card" style="border-color:rgba(255,107,0,0.2);background:rgba(255,107,0,0.04);padding:1rem;">
+        <div class="ct ct-or"></div>
+        <div style="font-size:0.65rem;font-weight:700;color:var(--or);letter-spacing:1px;text-transform:uppercase;margin-bottom:0.35rem;">Continuous compliance</div>
+        <p style="font-size:0.78rem;color:var(--t2);line-height:1.55;">5 compliance rule sets running daily. Padma receives 90/60/30d expiry alerts and immediate NCR-triggered invalidation warnings.</p>
+      </div>
+      <div class="card" style="border-color:rgba(79,255,0,0.2);background:rgba(79,255,0,0.04);padding:1rem;">
+        <div class="ct ct-gr"></div>
+        <div style="font-size:0.65rem;font-weight:700;color:var(--gr);letter-spacing:1px;text-transform:uppercase;margin-bottom:0.35rem;">Audit-ready always</div>
+        <p style="font-size:0.78rem;color:var(--t2);line-height:1.55;">Full field-level lineage from ETQ source record to certified EPD. On-demand audit packs. Zero manual assembly at inspection time.</p>
+      </div>
+    </div>
+
+    <!-- Phase strip -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:720px;margin:0 auto 2rem;text-align:left;">
+      <div style="background:var(--bg2);border:1px solid rgba(0,255,255,0.18);border-radius:9px;padding:1rem;">
+        <div style="font-size:0.65rem;font-weight:700;color:var(--cy);margin-bottom:0.35rem;">Phase 1 — Validate</div>
+        <div style="font-size:0.75rem;color:var(--t2);">Taxonomy audit with LCA practitioner · Hélène validation gate · ETQ field coverage assessment</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid rgba(255,245,0,0.18);border-radius:9px;padding:1rem;">
+        <div style="font-size:0.65rem;font-weight:700;color:var(--ye);margin-bottom:0.35rem;">Phase 2 — Pilot (MVP)</div>
+        <div style="font-size:0.75rem;color:var(--t2);">Agents 1–3 live · Lixil reference client · single product category · first certified EPD</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid rgba(79,255,0,0.18);border-radius:9px;padding:1rem;">
+        <div style="font-size:0.65rem;font-weight:700;color:var(--gr);margin-bottom:0.35rem;">Phase 3 — Scale (GA)</div>
+        <div style="font-size:0.75rem;color:var(--t2);">All 6 agents · portfolio dashboard · multi-client · Scope 3 expansion · $1M+ ARR</div>
+      </div>
+    </div>
+
+    <div class="bb full" style="margin:0 auto 1.5rem;"><span></span><span></span><span></span><span></span><span></span></div>
+    <p style="font-size:0.65rem;color:var(--t3);letter-spacing:1.8px;text-transform:uppercase;">Octave · Environmental Compliance Intelligence · Confidential</p>
+  </div>
+</section>
+
+<script>
+const obs = new IntersectionObserver(
+  es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('v'); }),
+  {threshold:0.08}
+);
+document.querySelectorAll('.r').forEach(el => obs.observe(el));
+
+const secs = document.querySelectorAll('section[id]');
+const links = document.querySelectorAll('nav .nav-links a');
+window.addEventListener('scroll', () => {
+  let cur = '';
+  secs.forEach(s => { if(window.scrollY >= s.offsetTop - 80) cur = s.id; });
+  links.forEach(l => {
+    l.classList.remove('act');
+    if(l.getAttribute('href') === '#'+cur) l.classList.add('act');
+  });
+});
+</script>
+</body>
+</html>
